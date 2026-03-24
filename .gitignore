@@ -7,3 +7,7 @@
 /TodoApi/obj
 /TodoApi.Tests/bin/Debug/net8.0
 /TodoApi.Tests/obj
+/.vs/ProjectEvaluation
+/TodoApi.Application
+/TodoApi.Domain
+/TodoApi.Infrastructure
