@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
-using TodoApi.DTOs;
+using TodoApi.Application.DTOs;
 
 namespace TodoApi.Middleware;
 

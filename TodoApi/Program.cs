@@ -1,7 +1,9 @@
-using TodoApi.Data;
+using TodoApi.Application.Services;
+using TodoApi.Application.Services;
+using TodoApi.Domain.Repositories;
+using TodoApi.Infrastructure.Data;
+using TodoApi.Infrastructure.Repositories;
 using TodoApi.Middleware;
-using TodoApi.Repositories;
-using TodoApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

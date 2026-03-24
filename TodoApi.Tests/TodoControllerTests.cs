@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
+using TodoApi.Application.DTOs;
+using TodoApi.Application.Services;
 using TodoApi.Controllers;
-using TodoApi.DTOs;
-using TodoApi.Models;
-using TodoApi.Services;
+using TodoApi.Domain.Entities;
 
 namespace TodoApi.Tests;
 

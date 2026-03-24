@@ -1,6 +1,6 @@
 using Microsoft.Data.Sqlite;
-using TodoApi.Models;
-using TodoApi.Repositories;
+using TodoApi.Domain.Entities;
+using TodoApi.Domain.Repositories;
 
 namespace TodoApi.Tests;
 
