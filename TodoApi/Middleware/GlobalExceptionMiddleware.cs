@@ -33,17 +33,17 @@ public class GlobalExceptionMiddleware
         var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
 
         _logger.LogError(exception,
-            "Unhandled exception occurred. TraceId: {TraceId}, Path: {Path}, Method: {Method}",
+            TodoApi.Application.Constants.ErrorMessages.UnhandledExceptionLog,
             traceId, context.Request.Path, context.Request.Method);
 
         var (statusCode, message) = exception switch
         {
-            ArgumentNullException => (HttpStatusCode.BadRequest, "A required argument was missing."),
-            ArgumentException => (HttpStatusCode.BadRequest, "Invalid argument provided."),
-            KeyNotFoundException => (HttpStatusCode.NotFound, "The requested resource was not found."),
-            UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "You are not authorized to perform this action."),
-            InvalidOperationException => (HttpStatusCode.Conflict, "The operation is not valid for the current state."),
-            _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
+            ArgumentNullException => (HttpStatusCode.BadRequest, TodoApi.Application.Constants.ErrorMessages.RequiredArgumentMissing),
+            ArgumentException => (HttpStatusCode.BadRequest, TodoApi.Application.Constants.ErrorMessages.InvalidArgument),
+            KeyNotFoundException => (HttpStatusCode.NotFound, TodoApi.Application.Constants.ErrorMessages.ResourceNotFound),
+            UnauthorizedAccessException => (HttpStatusCode.Unauthorized, TodoApi.Application.Constants.ErrorMessages.Unauthorized),
+            InvalidOperationException => (HttpStatusCode.Conflict, TodoApi.Application.Constants.ErrorMessages.InvalidOperation),
+            _ => (HttpStatusCode.InternalServerError, TodoApi.Application.Constants.ErrorMessages.UnexpectedError)
         };
 
         context.Response.ContentType = "application/json";

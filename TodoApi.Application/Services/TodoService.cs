@@ -28,10 +28,10 @@ public class TodoService : ITodoService
         return _repository.Create(todo);
     }
 
-    public List<Todo> GetAll()
+    public List<Todo> GetAll(string? search = null, string? sortBy = null, bool descending = false, int page = 1, int pageSize = 10)
     {
-        _logger.LogInformation("Fetching all todos from repository");
-        return _repository.GetAll();
+        _logger.LogInformation("Fetching todos from repository with search: {Search}, sortBy: {SortBy}, descending: {Descending}, page: {Page}, pageSize: {PageSize}", search, sortBy, descending, page, pageSize);
+        return _repository.GetAll(search, sortBy, descending, page, pageSize);
     }
 
     public Todo? GetById(int id)

@@ -1,0 +1,44 @@
+2026-03-25 02:19:53 [INF] User profile is available. Using 'C:\Users\SHREE\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-25 02:19:54 [INF] Now listening on: https://localhost:7186
+2026-03-25 02:19:54 [INF] Now listening on: http://localhost:5164
+2026-03-25 02:19:54 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-25 02:19:54 [INF] Hosting environment: Development
+2026-03-25 02:19:54 [INF] Content root path: C:\Users\SHREE\source\repos\dotnet-interview\TodoApi
+2026-03-25 02:19:54 [INF] Request starting HTTP/2 GET https://localhost:7186/swagger/index.html - null null
+2026-03-25 02:19:54 [INF] Request finished HTTP/2 GET https://localhost:7186/swagger/index.html - 200 null text/html;charset=utf-8 362.2429ms
+2026-03-25 02:19:54 [INF] Request starting HTTP/2 GET https://localhost:7186/_vs/browserLink - null null
+2026-03-25 02:19:54 [INF] Request starting HTTP/2 GET https://localhost:7186/_framework/aspnetcore-browser-refresh.js - null null
+2026-03-25 02:19:54 [INF] Request finished HTTP/2 GET https://localhost:7186/_framework/aspnetcore-browser-refresh.js - 200 16499 application/javascript; charset=utf-8 7.3188ms
+2026-03-25 02:19:54 [INF] Request finished HTTP/2 GET https://localhost:7186/_vs/browserLink - 200 null text/javascript; charset=UTF-8 78.7249ms
+2026-03-25 02:19:55 [INF] Request starting HTTP/2 GET https://localhost:7186/swagger/v1/swagger.json - null null
+2026-03-25 02:19:55 [INF] Request finished HTTP/2 GET https://localhost:7186/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 30.0015ms
+2026-03-25 02:20:11 [INF] Request starting HTTP/2 POST https://localhost:7186/api/auth/login - application/json 48
+2026-03-25 02:20:11 [INF] Executing endpoint 'TodoApi.Controllers.AuthController.Login (TodoApi)'
+2026-03-25 02:20:11 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(TodoApi.Application.DTOs.LoginRequest) on controller TodoApi.Controllers.AuthController (TodoApi).
+2026-03-25 02:20:14 [WRN] Invalid login attempt for user: admin
+2026-03-25 02:20:14 [INF] Executing UnauthorizedObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-03-25 02:20:14 [INF] Executed action TodoApi.Controllers.AuthController.Login (TodoApi) in 3092.6312ms
+2026-03-25 02:20:14 [INF] Executed endpoint 'TodoApi.Controllers.AuthController.Login (TodoApi)'
+2026-03-25 02:20:14 [INF] Request finished HTTP/2 POST https://localhost:7186/api/auth/login - 401 null application/json; charset=utf-8 3191.2239ms
+2026-03-25 02:20:30 [INF] Request starting HTTP/2 POST https://localhost:7186/api/auth/login - application/json 51
+2026-03-25 02:20:30 [INF] Executing endpoint 'TodoApi.Controllers.AuthController.Login (TodoApi)'
+2026-03-25 02:20:30 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult Login(TodoApi.Application.DTOs.LoginRequest) on controller TodoApi.Controllers.AuthController (TodoApi).
+2026-03-25 02:20:34 [INF] Executing OkObjectResult, writing value of type 'TodoApi.Application.DTOs.LoginResponse'.
+2026-03-25 02:20:34 [INF] Executed action TodoApi.Controllers.AuthController.Login (TodoApi) in 4051.0615ms
+2026-03-25 02:20:34 [INF] Executed endpoint 'TodoApi.Controllers.AuthController.Login (TodoApi)'
+2026-03-25 02:20:34 [INF] Request finished HTTP/2 POST https://localhost:7186/api/auth/login - 200 null application/json; charset=utf-8 4054.1786ms
+2026-03-25 02:21:10 [INF] Request starting HTTP/2 GET https://localhost:7186/api/todos?descending=false&page=1&pageSize=10 - null null
+2026-03-25 02:21:11 [INF] Executing endpoint 'TodoApi.Controllers.TodoController.GetAll (TodoApi)'
+2026-03-25 02:21:11 [INF] Route matched with {action = "GetAll", controller = "Todo"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult GetAll(System.String, System.String, Boolean, Int32, Int32) on controller TodoApi.Controllers.TodoController (TodoApi).
+2026-03-25 02:21:11 [INF] Retrieving todos with search: null, sortBy: null, descending: false, page: 1, pageSize: 10
+2026-03-25 02:21:11 [INF] Fetching todos from repository with search: null, sortBy: null, descending: false, page: 1, pageSize: 10
+2026-03-25 02:21:12 [INF] Executed DbCommand (30ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='0']
+SELECT [t].[Id], [t].[CreatedAt], [t].[Description], [t].[IsCompleted], [t].[Title]
+FROM [Todos] AS [t]
+ORDER BY [t].[Id]
+OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+2026-03-25 02:21:12 [INF] Retrieved 2 todos
+2026-03-25 02:21:12 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType2`2[[System.Collections.Generic.List`1[[TodoApi.Application.DTOs.TodoResponse, TodoApi.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-03-25 02:21:12 [INF] Executed action TodoApi.Controllers.TodoController.GetAll (TodoApi) in 1220.3032ms
+2026-03-25 02:21:12 [INF] Executed endpoint 'TodoApi.Controllers.TodoController.GetAll (TodoApi)'
+2026-03-25 02:21:12 [INF] Request finished HTTP/2 GET https://localhost:7186/api/todos?descending=false&page=1&pageSize=10 - 200 null application/json; charset=utf-8 1291.1286ms
