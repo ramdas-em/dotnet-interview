@@ -1,17 +1,9 @@
-# User-specific files
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
 
-# Visual Studio 2015/2017 cache/options directory
-.vs/
-
-# Build results
-[Dd]ebug/
-[Rr]elease/
-x64/
-x86/
-
-# NuGet Packages
-*.nupkg
+/.vs/TodoApi
+/TodoApi/bin/Debug/net8.0
+/TodoApi/obj
+/TodoApi.Tests/bin/Debug/net8.0
+/TodoApi.Tests/obj
