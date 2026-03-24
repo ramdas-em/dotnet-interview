@@ -1,5 +1,6 @@
 # Solution Documentation
 
+
 **Candidate Name:** [Your Name]  
 **Completion Date:** [Date]
 
@@ -7,58 +8,118 @@
 
 ## Problems Identified
 
-_Describe the issues you found in the original implementation. Consider aspects like:_
-- Architecture and design patterns
-- Code quality and maintainability
-- Security vulnerabilities
-- Performance concerns
-- Testing gaps
+### 1. SQL Injection Vulnerabilities (Critical)
+The original `TodoService` used string interpolation directly in SQL queries (e.g., `$"SELECT * FROM Todos WHERE Id = {id}"`, `VALUES ('{todo.Title}', ...)`) making the application vulnerable to SQL injection attacks.
 
-[Your analysis here]
+### 2. No Dependency Injection
+- `TodoService` was instantiated with `new TodoService()` directly in every controller action method.
+- No interfaces or abstractions existed for the service layer.
+- This tight coupling made the controller impossible to unit test in isolation.
+
+### 3. Non-RESTful API Design
+- All endpoints used `POST` HTTP method (including read and delete operations).
+- Non-standard route naming (`/api/createTodo`, `/api/getTodo`, etc.).
+- Get single and Get all were combined into a single endpoint differentiated by request body.
+- Delete returned `200 OK` instead of `204 No Content`.
+- Create returned `200 OK` instead of `201 Created`.
+
+### 4. Hardcoded Connection String
+The connection string `"Data Source=todos.db"` was duplicated in both `Program.cs` and `TodoService`, with no configuration support.
+
+### 5. No Input Validation
+The API accepted the entire `Todo` model directly, allowing clients to set `Id`, `CreatedAt`, and other server-managed fields. No validation attributes were present.
+
+### 6. No Separation of Concerns
+- No repository layer — data access logic was mixed into the service.
+- DTOs (request/response models) were defined inside the controller file.
+- Database initialization logic was a local function in `Program.cs`.
+
+### 7. Null Safety Issues
+- Model properties like `Title` and `Description` had no nullable annotations.
+- `GetString()` on the nullable `Description` column could throw when the value is `NULL` in the database.
+- `GetTodoById` returned `null` but the return type was non-nullable `Todo`.
+
+### 8. UpdateTodo Did Not Verify Success
+The `UpdateTodo` method didn't check `rowsAffected`, so it returned a "success" response even when no row was actually updated.
+
+### 9. Poor Test Quality
+- Tests depended on a real SQLite database (not isolated).
+- Tests had interdependencies and assumed prior state.
+- Poor naming conventions (`Test1`, `TestEverything`, `DeleteWorks`).
+- `TestEverything` tested multiple unrelated behaviors in one test.
+- `ControllerTest` hit the real database through the controller.
 
 ---
 
 ## Architectural Decisions
 
-_Explain the architecture you chose and why. Consider:_
-- Design patterns applied
-- Project structure changes
-- Technology choices
-- Separation of concerns
+### Layered Architecture
+```
+Controller ? Service ? Repository
+```
+- **Controller**: Handles HTTP concerns, request/response mapping, validation.
+- **Service**: Contains business logic, orchestrates repository calls.
+- **Repository**: Handles data access (SQLite) with parameterized queries.
 
-[Your decisions here]
+### Interface-Based Design
+- `ITodoRepository` and `ITodoService` interfaces enable dependency injection and testability.
+- `SqliteTodoRepository` is the concrete implementation, easily swappable for other storage backends.
+
+### DTOs (Data Transfer Objects)
+- `CreateTodoRequest` — input for creating a todo (only `Title` and `Description`).
+- `UpdateTodoRequest` — input for updating a todo (includes `IsCompleted`).
+- `TodoResponse` — output DTO that decouples the API contract from the domain model.
+- All DTOs have validation attributes (`[Required]`, `[StringLength]`).
+
+### RESTful API Conventions
+Standard HTTP methods and resource-based URLs:
+- `POST /api/todos` — Create
+- `GET /api/todos` — Get all
+- `GET /api/todos/{id}` — Get by ID
+- `PUT /api/todos/{id}` — Update
+- `DELETE /api/todos/{id}` — Delete
+
+### Parameterized SQL Queries
+All SQL queries use `@Parameter` placeholders instead of string interpolation, eliminating SQL injection risks.
+
+### Test Strategy
+- `FakeTodoRepository` — in-memory fake for unit testing without a database.
+- `TodoServiceTests` — tests business logic in isolation (11 tests).
+- `TodoControllerTests` — tests HTTP response behavior (9 tests).
+- Tests cover both positive and negative cases (e.g., not-found, empty lists, null descriptions).
 
 ---
 
 ## Trade-offs
 
-_Discuss compromises you made and the reasoning behind them. Consider:_
-- What did you prioritize?
-- What did you defer or simplify?
-- What alternatives did you consider?
-
-[Your trade-offs here]
+- **Raw SQL over EF Core**: Kept raw SQL with parameterized queries rather than introducing Entity Framework Core. This keeps the change scope manageable while still fixing the SQL injection vulnerability. EF Core would be the next step for maintainability.
+- **Synchronous API**: Kept synchronous methods to minimize the scope of changes. In production, all database calls should be async.
+- **In-memory fake vs mocking library**: Used a simple hand-written `FakeTodoRepository` instead of adding a mocking framework (e.g., Moq). This keeps the test project dependency-free and the tests easy to understand.
+- **No global error handling middleware**: Kept error handling simple. In production, a global exception handler middleware would provide consistent error responses.
 
 ---
 
 ## How to Run
 
 ### Prerequisites
-[List required software, versions, etc.]
+- .NET 8 SDK
 
 ### Build
 ```bash
-# Add your build commands
+dotnet build
 ```
 
 ### Run
 ```bash
-# Add your run commands
+dotnet run --project TodoApi
 ```
+
+The API will be available at the URL shown in console output (e.g., `https://localhost:5001`).  
+Swagger UI is available at `/swagger` in development mode.
 
 ### Test
 ```bash
-# Add your test commands
+dotnet test
 ```
 
 ---
@@ -69,45 +130,95 @@ _Discuss compromises you made and the reasoning behind them. Consider:_
 
 #### Create TODO
 ```
-Method: [HTTP method]
-URL: [endpoint]
-Request Body: [example]
-Response: [example]
+Method: POST
+URL: /api/todos
+Request Body:
+{
+  "title": "Buy groceries",
+  "description": "Milk, eggs, bread"
+}
+Response (201 Created):
+{
+  "id": 1,
+  "title": "Buy groceries",
+  "description": "Milk, eggs, bread",
+  "isCompleted": false,
+  "createdAt": "2024-01-15T10:30:00Z"
+}
 ```
 
-#### Get TODO(s)
+#### Get All TODOs
 ```
-Method: [HTTP method]
-URL: [endpoint]
-Request: [example]
-Response: [example]
+Method: GET
+URL: /api/todos
+Response (200 OK):
+[
+  {
+    "id": 1,
+    "title": "Buy groceries",
+    "description": "Milk, eggs, bread",
+    "isCompleted": false,
+    "createdAt": "2024-01-15T10:30:00Z"
+  }
+]
+```
+
+#### Get TODO by ID
+```
+Method: GET
+URL: /api/todos/{id}
+Response (200 OK):
+{
+  "id": 1,
+  "title": "Buy groceries",
+  "description": "Milk, eggs, bread",
+  "isCompleted": false,
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+Response (404 Not Found) when ID does not exist
 ```
 
 #### Update TODO
 ```
-Method: [HTTP method]
-URL: [endpoint]
-Request Body: [example]
-Response: [example]
+Method: PUT
+URL: /api/todos/{id}
+Request Body:
+{
+  "title": "Buy groceries",
+  "description": "Milk, eggs, bread, butter",
+  "isCompleted": true
+}
+Response (200 OK):
+{
+  "id": 1,
+  "title": "Buy groceries",
+  "description": "Milk, eggs, bread, butter",
+  "isCompleted": true,
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+Response (404 Not Found) when ID does not exist
 ```
 
 #### Delete TODO
 ```
-Method: [HTTP method]
-URL: [endpoint]
-Request: [example]
-Response: [example]
+Method: DELETE
+URL: /api/todos/{id}
+Response (204 No Content) on success
+Response (404 Not Found) when ID does not exist
 ```
 
 ---
 
 ## Future Improvements
 
-_What would you do if you had more time? Consider:_
-- Additional features
-- Performance optimizations
-- Enhanced testing
-- Better documentation
-- Deployment considerations
-
-[Your ideas here]
+- **Async/await**: Make all data access methods asynchronous for better scalability under load.
+- **Entity Framework Core**: Replace raw SQL with EF Core for better maintainability, migrations, and LINQ support.
+- **Logging**: Add structured logging with `ILogger<T>` throughout the application.
+- **Global exception handling**: Add middleware for consistent error responses with problem details (RFC 7807).
+- **Pagination**: Add paging, sorting, and filtering to the `GET /api/todos` endpoint.
+- **FluentValidation**: Replace data annotation validation with FluentValidation for complex validation rules.
+- **Integration tests**: Add integration tests using `WebApplicationFactory<T>` to test the full HTTP pipeline.
+- **Docker support**: Add a `Dockerfile` for containerized deployment.
+- **Health checks**: Add health check endpoints for monitoring.
+- **API versioning**: Add versioning support for future API evolution.
+- **CQRS considerations**: Separate read and write models if the application grows in complexity.

@@ -1,122 +1,115 @@
 using Microsoft.AspNetCore.Mvc;
+using TodoApi.DTOs;
 using TodoApi.Models;
 using TodoApi.Services;
 
-namespace TodoApi.Controllers
+namespace TodoApi.Controllers;
+
+[ApiController]
+[Route("api/todos")]
+public class TodoController : ControllerBase
 {
-    [ApiController]
-    [Route("api")]
-    public class TodoController : ControllerBase
+    private readonly ITodoService _todoService;
+    private readonly ILogger<TodoController> _logger;
+
+    public TodoController(ITodoService todoService, ILogger<TodoController> logger)
     {
-        public TodoController()
-        {
-        }
-
-        [HttpPost("createTodo")]
-        public IActionResult CreateTodo([FromBody] Todo todo)
-        {
-            try
-            {
-                var todoService = new TodoService();
-                var result = todoService.CreateTodo(todo);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpPost("getTodo")]
-        public IActionResult GetTodo([FromBody] GetTodoRequest request)
-        {
-            try
-            {
-                var todoService = new TodoService();
-                if (request.Id.HasValue)
-                {
-                    var todo = todoService.GetTodoById(request.Id.Value);
-                    if (todo == null)
-                    {
-                        return NotFound();
-                    }
-                    return Ok(todo);
-                }
-                else
-                {
-                    var todos = todoService.GetAllTodos();
-                    return Ok(todos);
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpPost("updateTodo")]
-        public IActionResult UpdateTodo([FromBody] UpdateTodoRequest request)
-        {
-            try
-            {
-                var todoService = new TodoService();
-                var existingTodo = todoService.GetTodoById(request.Id);
-                if (existingTodo == null)
-                {
-                    return NotFound();
-                }
-
-                var todo = new Todo
-                {
-                    Title = request.Title,
-                    Description = request.Description,
-                    IsCompleted = request.IsCompleted
-                };
-
-                var result = todoService.UpdateTodo(request.Id, todo);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpPost("deleteTodo")]
-        public IActionResult DeleteTodo([FromBody] DeleteTodoRequest request)
-        {
-            try
-            {
-                var todoService = new TodoService();
-                var result = todoService.DeleteTodo(request.Id);
-                if (result)
-                {
-                    return Ok(new { message = "Todo deleted successfully" });
-                }
-                return NotFound();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        _todoService = todoService;
+        _logger = logger;
     }
 
-    public class GetTodoRequest
+    [HttpPost]
+    public IActionResult Create([FromBody] CreateTodoRequest request)
     {
-        public int? Id { get; set; }
+        _logger.LogInformation("Creating todo with title: {Title}", request.Title);
+
+        var todo = new Todo
+        {
+            Title = request.Title,
+            Description = request.Description
+        };
+
+        var result = _todoService.Create(todo);
+        if (result == null)
+        {
+            _logger.LogWarning("Duplicate todo title detected: {Title}", request.Title);
+            return Conflict(new { message = $"A todo with the title '{request.Title}' already exists." });
+        }
+
+        _logger.LogInformation("Todo created successfully with Id: {Id}", result.Id);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, MapToResponse(result));
     }
 
-    public class UpdateTodoRequest
+    [HttpGet]
+    public IActionResult GetAll()
     {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public bool IsCompleted { get; set; }
+        _logger.LogInformation("Retrieving all todos");
+        var todos = _todoService.GetAll();
+        _logger.LogInformation("Retrieved {Count} todos", todos.Count);
+        return Ok(todos.Select(MapToResponse));
     }
 
-    public class DeleteTodoRequest
+    [HttpGet("{id}")]
+    public IActionResult GetById(int id)
     {
-        public int Id { get; set; }
+        _logger.LogInformation("Retrieving todo with Id: {Id}", id);
+        var todo = _todoService.GetById(id);
+        if (todo == null)
+        {
+            _logger.LogWarning("Todo not found with Id: {Id}", id);
+            return NotFound();
+        }
+
+        return Ok(MapToResponse(todo));
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult Update(int id, [FromBody] UpdateTodoRequest request)
+    {
+        _logger.LogInformation("Updating todo with Id: {Id}", id);
+
+        var todo = new Todo
+        {
+            Title = request.Title,
+            Description = request.Description,
+            IsCompleted = request.IsCompleted
+        };
+
+        var result = _todoService.Update(id, todo);
+        if (result == null)
+        {
+            _logger.LogWarning("Todo not found for update with Id: {Id}", id);
+            return NotFound();
+        }
+
+        _logger.LogInformation("Todo updated successfully with Id: {Id}", id);
+        return Ok(MapToResponse(result));
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult Delete(int id)
+    {
+        _logger.LogInformation("Deleting todo with Id: {Id}", id);
+        var deleted = _todoService.Delete(id);
+        if (!deleted)
+        {
+            _logger.LogWarning("Todo not found for deletion with Id: {Id}", id);
+            return NotFound();
+        }
+
+        _logger.LogInformation("Todo deleted successfully with Id: {Id}", id);
+        return NoContent();
+    }
+
+    private static TodoResponse MapToResponse(Todo todo)
+    {
+        return new TodoResponse
+        {
+            Id = todo.Id,
+            Title = todo.Title,
+            Description = todo.Description,
+            IsCompleted = todo.IsCompleted,
+            CreatedAt = todo.CreatedAt
+        };
     }
 }

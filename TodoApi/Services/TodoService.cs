@@ -1,111 +1,76 @@
-using Microsoft.Data.Sqlite;
 using TodoApi.Models;
+using TodoApi.Models;
+using TodoApi.Repositories;
 
-namespace TodoApi.Services
+namespace TodoApi.Services;
+
+public class TodoService : ITodoService
 {
-    public class TodoService
+    private readonly ITodoRepository _repository;
+    private readonly ILogger<TodoService> _logger;
+
+    public TodoService(ITodoRepository repository, ILogger<TodoService> logger)
     {
-        private string _connectionString = "Data Source=todos.db";
+        _repository = repository;
+        _logger = logger;
+    }
 
-        public TodoService()
+    public Todo? Create(Todo todo)
+    {
+        _logger.LogInformation("Checking for duplicate title: {Title}", todo.Title);
+        if (_repository.ExistsByTitle(todo.Title))
         {
-        }
-
-        public Todo CreateTodo(Todo todo)
-        {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            var command = connection.CreateCommand();
-            command.CommandText = $@"
-                INSERT INTO Todos (Title, Description, IsCompleted, CreatedAt)
-                VALUES ('{todo.Title}', '{todo.Description}', {(todo.IsCompleted ? 1 : 0)}, '{DateTime.UtcNow.ToString("o")}');
-                SELECT last_insert_rowid();
-            ";
-
-            var id = Convert.ToInt32(command.ExecuteScalar());
-            todo.Id = id;
-            todo.CreatedAt = DateTime.UtcNow;
-            return todo;
-        }
-
-        public List<Todo> GetAllTodos()
-        {
-            var todos = new List<Todo>();
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            var command = connection.CreateCommand();
-            command.CommandText = "SELECT * FROM Todos";
-
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                todos.Add(new Todo
-                {
-                    Id = reader.GetInt32(0),
-                    Title = reader.GetString(1),
-                    Description = reader.GetString(2),
-                    IsCompleted = reader.GetInt32(3) == 1,
-                    CreatedAt = DateTime.Parse(reader.GetString(4))
-                });
-            }
-
-            return todos;
-        }
-
-        public Todo GetTodoById(int id)
-        {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            var command = connection.CreateCommand();
-            command.CommandText = $"SELECT * FROM Todos WHERE Id = {id}";
-
-            using var reader = command.ExecuteReader();
-            if (reader.Read())
-            {
-                return new Todo
-                {
-                    Id = reader.GetInt32(0),
-                    Title = reader.GetString(1),
-                    Description = reader.GetString(2),
-                    IsCompleted = reader.GetInt32(3) == 1,
-                    CreatedAt = DateTime.Parse(reader.GetString(4))
-                };
-            }
-
+            _logger.LogWarning("Todo with title '{Title}' already exists. Skipping creation.", todo.Title);
             return null;
         }
 
-        public Todo UpdateTodo(int id, Todo todo)
+        _logger.LogInformation("Creating new todo with title: {Title}", todo.Title);
+        return _repository.Create(todo);
+    }
+
+    public List<Todo> GetAll()
+    {
+        _logger.LogInformation("Fetching all todos from repository");
+        return _repository.GetAll();
+    }
+
+    public Todo? GetById(int id)
+    {
+        _logger.LogInformation("Fetching todo with Id: {Id}", id);
+        return _repository.GetById(id);
+    }
+
+    public Todo? Update(int id, Todo todo)
+    {
+        _logger.LogInformation("Attempting to update todo with Id: {Id}", id);
+        var existing = _repository.GetById(id);
+        if (existing == null)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            var command = connection.CreateCommand();
-            command.CommandText = $@"
-                UPDATE Todos
-                SET Title = '{todo.Title}', Description = '{todo.Description}', IsCompleted = {(todo.IsCompleted ? 1 : 0)}
-                WHERE Id = {id}
-            ";
-
-            var rowsAffected = command.ExecuteNonQuery();
-
-            todo.Id = id;
-            return todo;
+            _logger.LogWarning("Todo with Id: {Id} not found for update", id);
+            return null;
         }
 
-        public bool DeleteTodo(int id)
+        existing.Title = todo.Title;
+        existing.Description = todo.Description;
+        existing.IsCompleted = todo.IsCompleted;
+
+        _repository.Update(id, existing);
+        _logger.LogInformation("Todo with Id: {Id} updated successfully", id);
+        return existing;
+    }
+
+    public bool Delete(int id)
+    {
+        _logger.LogInformation("Attempting to delete todo with Id: {Id}", id);
+        var result = _repository.Delete(id);
+        if (!result)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            var command = connection.CreateCommand();
-            command.CommandText = $"DELETE FROM Todos WHERE Id = {id}";
-
-            var rowsAffected = command.ExecuteNonQuery();
-            return rowsAffected > 0;
+            _logger.LogWarning("Todo with Id: {Id} not found for deletion", id);
         }
+        else
+        {
+            _logger.LogInformation("Todo with Id: {Id} deleted successfully", id);
+        }
+        return result;
     }
 }

@@ -1,6 +1,6 @@
-namespace TodoApi.Models;
+namespace TodoApi.DTOs;
 
-public class Todo : IEntity
+public class TodoResponse
 {
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
