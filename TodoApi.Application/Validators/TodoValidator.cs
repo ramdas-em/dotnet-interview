@@ -3,9 +3,17 @@ using TodoApi.Domain.Entities;
 
 namespace TodoApi.Application.Validators;
 
+/// <summary>
+/// Validator for Todo entity. Ensures title and description meet requirements.
+/// </summary>
 public class TodoValidator : AbstractValidator<Todo>
 {
     public TodoValidator()
+    {
+        ApplyCommonRules();
+    }
+
+    private void ApplyCommonRules()
     {
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title is required.")

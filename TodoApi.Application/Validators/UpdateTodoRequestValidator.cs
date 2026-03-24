@@ -3,9 +3,17 @@ using TodoApi.Application.DTOs;
 
 namespace TodoApi.Application.Validators;
 
+/// <summary>
+/// Validator for UpdateTodoRequest. Ensures title and description meet requirements.
+/// </summary>
 public class UpdateTodoRequestValidator : AbstractValidator<UpdateTodoRequest>
 {
     public UpdateTodoRequestValidator()
+    {
+        ApplyCommonRules();
+    }
+
+    private void ApplyCommonRules()
     {
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title is required.")
