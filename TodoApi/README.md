@@ -7,23 +7,59 @@ A simple TODO API built with ASP.NET Core 8.0.
 ### Prerequisites
 - .NET 8.0 SDK
 
-### Running the Application
+### How to Run the Application (Step by Step)
+1. **Clone the repository (if not already done):**
+   ```sh
+   git clone https://github.com/ramdas-em/dotnet-interview.git
+   cd dotnet-interview
+   ```
+2. **Restore dependencies:**
+   ```sh
+   dotnet restore
+   ```
+3. **Build the solution:**
+   ```sh
+   dotnet build
+   ```
+4. **Run database migrations (if required):**
+   - The app will auto-create the database on first run. For manual migration, see project documentation.
+5. **Run the application:**
+   ```sh
+   dotnet run --project TodoApi
+   ```
+6. **Access the API:**
+   - The API will be available at the URL shown in the console output (e.g., `http://localhost:5164`).
+7. **Access Swagger UI:**
+   - Open `http://localhost:5164/swagger` in your browser to explore and test the API endpoints interactively.
+8. **Run tests:**
+   ```sh
+   dotnet test TodoApi.Tests/TodoApi.Tests.csproj
+   ```
 
-1. Navigate to the TodoApi directory:
-```
-cd TodoApi
-```
-
-2. Run the application:
-```
-dotnet run
-```
-
-3. The API will be available at `http://localhost:5164` (or check the console output for the exact URL)
-
-4. Access Swagger UI at `http://localhost:5164/swagger` to test the endpoints
 
 ## API Endpoints
+
+### Authentication
+- **POST /api/auth/login**
+  - Request body:
+    ```json
+    {
+      "username": "admin",
+      "password": "password"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "token": "<jwt-token>"
+    }
+    ```
+
+### Using the JWT Token
+- For all protected endpoints (all except `/api/auth/login`), include the token in the `Authorization` header:
+  ```http
+  Authorization: Bearer <jwt-token>
+  ```
 
 All endpoints are under `/api`:
 

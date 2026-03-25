@@ -11,7 +11,7 @@ public class AuthService : IAuthService
 {
     private readonly IConfiguration _configuration;
     // Demo user store
-    private readonly Dictionary<string, string> _users = new()
+    private readonly Dictionary<string, string> _users = new(StringComparer.OrdinalIgnoreCase)
     {
         { "admin", "password" } // username: admin, password: password
     };
@@ -23,7 +23,7 @@ public class AuthService : IAuthService
 
     public string? Authenticate(string username, string password)
     {
-        if (!_users.TryGetValue(username, out var storedPassword) || storedPassword != password)
+        if (!_users.TryGetValue(username, out var storedPassword) || !string.Equals(storedPassword, password, StringComparison.OrdinalIgnoreCase))
             return null;
 
         var jwtSettings = _configuration.GetSection("Jwt");
